@@ -202,6 +202,14 @@ jobs:
             grep 'CC_COMPAT_CLANG_FLAGS' arch/arm64/kernel/vdso32/Makefile
         fi
 
+        # Patch 64-bit vdso Makefile: force GNU assembler (the actual failing one: arch/arm64/kernel/vdso/vgettimeofday.o)
+        if [ -f arch/arm64/kernel/vdso/Makefile ]; then
+            sed -i '/^CFLAGS_vgettimeofday.o =/s/$/ -fno-integrated-as/' arch/arm64/kernel/vdso/Makefile
+            sed -i 's|cmd_vdsoas = $(CC) $(a_flags) -c -o|cmd_vdsoas = $(CC) -fno-integrated-as $(a_flags) -c -o|' arch/arm64/kernel/vdso/Makefile
+            echo 'Patched 64-bit vdso Makefile: added -fno-integrated-as'
+            grep -n 'fno-integrated-as' arch/arm64/kernel/vdso/Makefile
+        fi
+
     - name: Setup ccache
       if: env.ENABLE_CCACHE == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
