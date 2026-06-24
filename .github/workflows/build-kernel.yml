@@ -195,6 +195,13 @@ jobs:
             echo "CONFIG_CC_WERROR=n" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
 
+        # Patch vdso32 Makefile: force GNU assembler for 32-bit vDSO (fixes clang IAS error on 4.19)
+        if [ -f arch/arm64/kernel/vdso32/Makefile ]; then
+            sed -i 's|CC_COMPAT_CLANG_FLAGS := --target=|CC_COMPAT_CLANG_FLAGS := -fno-integrated-as --target=|' arch/arm64/kernel/vdso32/Makefile
+            echo 'Patched vdso32 Makefile: added -fno-integrated-as'
+            grep 'CC_COMPAT_CLANG_FLAGS' arch/arm64/kernel/vdso32/Makefile
+        fi
+
     - name: Setup ccache
       if: env.ENABLE_CCACHE == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
